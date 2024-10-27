@@ -1,0 +1,42 @@
+{
+  "Comment": "Obtém o preço atualizado do USDT e do Bitcoin em BRL.",
+  "StartAt": "Obtém preço atual do USDT e BTC em Reais",
+  "States": {
+    "Obtém preço atual do USDT e BTC em Reais": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::http:invoke",
+      "Parameters": {
+        "Method": "GET",
+        "Authentication": {
+          "ConnectionArn": "arn:aws:events:sa-east-1:314146309137:connection/economia.awesomeapi.com.br/c61e4279-b003-4444-af20-6a60a83f30da"
+        },
+        "ApiEndpoint": "https://economia.awesomeapi.com.br/last/BTC-BRL"
+      },
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.ALL"
+          ],
+          "BackoffRate": 2,
+          "IntervalSeconds": 1,
+          "MaxAttempts": 3,
+          "JitterStrategy": "FULL"
+        }
+      ],
+      "Next": "DynamoDB PutItem"
+    },
+    "DynamoDB PutItem": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::dynamodb:putItem",
+      "Parameters": {
+        "TableName": "MyDynamoDBTable",
+        "Item": {
+          "Column": {
+            "S": "MyEntry"
+          }
+        }
+      },
+      "End": true
+    }
+  }
+}
